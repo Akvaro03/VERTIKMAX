@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  // url se configura fuera (por ej prisma.config.ts o env DATABASE_URL según tu setup)
+}
+
+enum Weekday {
+  lunes
+  martes
+  miercoles
+  jueves
+  viernes
+  sabado
+  domingo
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  exercises    Exercise[]
+  trainingDays TrainingDay[]
+  workoutLogs  WorkoutLog[]
+}
+
+model Exercise {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name        String
+  description String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  TrainingBlockExercise TrainingBlockExercise[]
+  workoutLogs           WorkoutLog[]
+
+  @@index([userId])
+  @@index([userId, name])
+}
+
+model TrainingDay {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  day  Weekday
+  name String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  blocks      TrainingBlock[] // ✅ nuevo
+  workoutLogs WorkoutLog[]
+
+  @@unique([userId, day])
+  @@index([userId])
+}
+
+model TrainingBlock {
+  id            String      @id @default(cuid())
+  trainingDayId String
+  trainingDay   TrainingDay @relation(fields: [trainingDayId], references: [id], onDelete: Cascade)
+
+  title String
+  order Int    @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  exercises TrainingBlockExercise[]
+
+  @@index([trainingDayId, order])
+}
+
+model TrainingBlockExercise {
+  id         String @id @default(cuid())
+  blockId    String
+  exerciseId String
+
+  block    TrainingBlock @relation(fields: [blockId], references: [id], onDelete: Cascade)
+  exercise Exercise      @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  // metadata del “plan”
+  order       Int     @default(0)
+  targetSets  Int?
+  targetReps  String?
+  restSeconds Int?
+
+  @@unique([blockId, exerciseId])
+  @@index([blockId, order])
+  @@index([exerciseId])
+}
+
+model WorkoutLog {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  exerciseId String
+  exercise   Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  // opcional: si querés asociar el log a un “día del plan”
+  trainingDayId String?
+  trainingDay   TrainingDay? @relation(fields: [trainingDayId], references: [id], onDelete: SetNull)
+
+  performedAt DateTime @default(now())
+  notes       String?
+
+  // opcional: si vas a registrar resultados reales
+  // setsDone    Int?
+  // repsDone    String?
+  // weightKg    Float?
+
+  @@index([userId, performedAt])
+  @@index([exerciseId, performedAt])
+  @@index([trainingDayId])
+}
