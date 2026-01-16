@@ -10,10 +10,10 @@ import Link from "next/link";
 import getTodayName from "@/utilts/getTodayName";
 import getToday from "@/feature/trainingDays/actions/getToday";
 import { TrainingDayCard } from "@/components/training-day-card";
-import { TrainingDayWithExercises } from "@/feature/trainingDays/actions/getDays";
+import { TrainingDayWithBlocks } from "@/feature/trainingDays/actions/getDays";
 
 export default function Home() {
-  const [days, setDays] = useState<TrainingDayWithExercises | null>(null);
+  const [days, setDays] = useState<TrainingDayWithBlocks | null>(null);
   const [exercises, setExercises] = useState<Exercise[] | null>(null);
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(
     null
