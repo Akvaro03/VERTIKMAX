@@ -1,28 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { type Exercise, getExercises, getTrainingDays } from "@/lib/storage";
 import { WorkoutCard } from "@/components/workout-card";
-import { LogWorkoutDialog } from "@/components/log-workout-dialog";
 import { Button } from "@/components/ui/button";
 import { Dumbbell, Settings, Calendar, Trash2 } from "lucide-react";
 import Link from "next/link";
-import getTodayName from "@/utilts/getTodayName";
 import getToday from "@/feature/trainingDays/actions/getToday";
 import { TrainingDayCard } from "@/components/training-day-card";
 import { TrainingDayWithBlocks } from "@/feature/trainingDays/actions/getDays";
 
 export default function Home() {
   const [days, setDays] = useState<TrainingDayWithBlocks | null>(null);
-  const [exercises, setExercises] = useState<Exercise[] | null>(null);
-  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(
-    null
-  );
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const handleLogWorkout = (exercise: Exercise) => {
-    setSelectedExercise(exercise);
-    setDialogOpen(true);
-  };
   useEffect(() => {
     async function fetchData() {
       try {
@@ -31,14 +19,12 @@ export default function Home() {
         setDays(data);
       } catch (error) {
         console.log("first");
+        console.log(error);
       }
     }
     fetchData();
   }, []);
 
-  const handleSuccess = () => {
-    setExercises(getExercises());
-  };
   return (
     <div className="min-h-screen bg-background pb-20">
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border">
@@ -104,7 +90,15 @@ export default function Home() {
           </div>
         ) : (
           <div className="relative group">
-            <TrainingDayCard day={days} onSelect={(d) => console.log(d)} />
+            <TrainingDayCard
+              day={days}
+              onSelect={(d) => console.log(d)}
+              isActive
+            />
+            <WorkoutCard
+              exercise={days.blocks[0].exercises[0].exercise}
+              onLogWorkout={(a) => console.log(a)}
+            />
             <Button
               variant="ghost"
               size="icon"
@@ -119,12 +113,12 @@ export default function Home() {
         )}
       </div>
 
-      <LogWorkoutDialog
+      {/* <LogWorkoutDialog
         exercise={selectedExercise}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         onSuccess={handleSuccess}
-      />
+      /> */}
     </div>
   );
 }

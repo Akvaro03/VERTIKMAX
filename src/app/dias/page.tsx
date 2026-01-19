@@ -93,7 +93,7 @@ export default function TrainingDaysPage() {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingDay, setEditingDay] = useState<TrainingDayWithBlocks | null>(
-    null
+    null,
   );
 
   // 🔴 Cambiamos de exercises: string[] a exerciseBlocks: string[][]
@@ -116,7 +116,6 @@ export default function TrainingDaysPage() {
       try {
         setIsLoadingDays(true);
         const list = await getDays();
-        console.log(list);
         if (!cancelled) setDays(list as TrainingDayWithBlocks[]);
       } catch (e) {
         console.error(e);
@@ -144,7 +143,7 @@ export default function TrainingDaysPage() {
 
   const totalSelected = useMemo(
     () => formData.exerciseBlocks.reduce((acc, block) => acc + block.length, 0),
-    [formData.exerciseBlocks]
+    [formData.exerciseBlocks],
   );
 
   const handleOpenDialog = (day?: TrainingDayWithBlocks) => {
@@ -221,9 +220,6 @@ export default function TrainingDaysPage() {
 
     const dayValue = formData.day as Weekday;
 
-    // Aplanamos todos los bloques para el backend actual
-    const flattened = formData.exerciseBlocks.flat();
-
     setDialogOpen(false);
     setFormData({
       name: "",
@@ -241,6 +237,8 @@ export default function TrainingDaysPage() {
         exercises: block.map((id) => ({ exerciseId: id })),
       })),
     });
+    const list = await getDays();
+    setDays(list as TrainingDayWithBlocks[]);
   };
 
   const handleDelete = (id: string) => {

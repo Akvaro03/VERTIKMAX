@@ -3,18 +3,21 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, ChevronRight, Timer, Hash } from "lucide-react";
+import { Calendar, ChevronRight, Timer, Hash, Plus } from "lucide-react";
 import { TrainingDayWithBlocks } from "@/feature/trainingDays/actions/getDays";
+import LoadTraining from "./loadTraining";
+import { useState } from "react";
 
 interface TrainingDayCardProps {
   day: TrainingDayWithBlocks;
+  isActive?: boolean;
   onSelect: (day: TrainingDayWithBlocks) => void;
 }
 
 function formatTarget(
   targetSets: number | null,
   targetReps: string | null,
-  restSeconds: number | null
+  restSeconds: number | null,
 ) {
   const sets = targetSets ? `${targetSets} sets` : "sets —";
   const reps = targetReps ? `${targetReps} reps` : "reps —";
@@ -23,8 +26,13 @@ function formatTarget(
   return { sets, reps, rest };
 }
 
-export function TrainingDayCard({ day, onSelect }: TrainingDayCardProps) {
+export function TrainingDayCard({
+  day,
+  isActive,
+  onSelect,
+}: TrainingDayCardProps) {
   const links = [...day.blocks].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  const [isOpenLoadExercise, setIsOpenLoadExercise] = useState<boolean>(false);
   return (
     <Card
       className="group bg-card border border-border hover:border-primary/50 transition-colors cursor-pointer rounded-2xl"
@@ -52,7 +60,7 @@ export function TrainingDayCard({ day, onSelect }: TrainingDayCardProps) {
                   variant="secondary"
                   className="hidden sm:inline-flex bg-secondary/50 border-0 text-xs font-medium"
                 >
-                  {day.day}
+                  {day.day.toUpperCase()}
                 </Badge>
               </div>
 
@@ -83,58 +91,81 @@ export function TrainingDayCard({ day, onSelect }: TrainingDayCardProps) {
               const orderNumber = (link.order ?? idx) + 1;
               const { sets, reps, rest } = formatTarget(5, ",", 5);
               const exercises = link.exercises;
-              console.log(exercises);
               return (
                 <div key={link.id}>
                   {link.title}
                   {exercises.map((exercise, idx) => (
                     <div
                       key={exercise.id}
-                      className="flex items-start my-2 justify-between gap-3 rounded-xl border border-border/60 bg-background/40 px-3 py-2.5 hover:bg-background/60 transition-colors"
+                      className="
+    rounded-xl border border-border/60 bg-background/40
+    px-3 py-3
+    hover:bg-background/60 transition-colors
+  "
                     >
-                      <div className="flex items-start gap-3 min-w-0">
-                        {/* Order pill */}
-                        <div className="flex items-center gap-1 shrink-0">
-                          <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center ring-1 ring-primary/10">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        {/* Left */}
+                        <div className="flex items-start gap-3 min-w-0">
+                          <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center ring-1 ring-primary/10 shrink-0">
                             <span className="text-xs font-semibold text-primary">
                               {idx + 1}
                             </span>
                           </div>
-                        </div>
 
-                        {/* Name + optional description */}
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium text-foreground truncate">
-                            {exercises[0]?.exercise.name ||
-                              "Ejercicio sin nombre"}
-                          </p>
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-foreground truncate">
+                              {exercise.exercise.name || "Ejercicio sin nombre"}
+                            </p>
 
-                          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                            <span className="inline-flex items-center gap-1">
-                              <Hash className="w-3.5 h-3.5" />
-                              {sets}
-                            </span>
-                            <span className="inline-flex items-center gap-1">
-                              <Hash className="w-3.5 h-3.5" />
-                              {reps}
-                            </span>
-                            {rest ? (
+                            <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                               <span className="inline-flex items-center gap-1">
-                                <Timer className="w-3.5 h-3.5" />
-                                descanso {rest}
+                                <Hash className="w-3.5 h-3.5" />
+                                {sets}
                               </span>
-                            ) : null}
+                              <span className="inline-flex items-center gap-1">
+                                <Hash className="w-3.5 h-3.5" />
+                                {reps}
+                              </span>
+                              {rest ? (
+                                <span className="inline-flex items-center gap-1">
+                                  <Timer className="w-3.5 h-3.5" />
+                                  descanso {rest}
+                                </span>
+                              ) : null}
+                            </div>
                           </div>
                         </div>
-                      </div>
 
-                      {/* Right mini badge (compact metadata) */}
-                      <Badge
-                        variant="secondary"
-                        className="shrink-0 bg-secondary/40 border-0 text-[11px] font-medium"
-                      >
-                        {5} × {"10"}
-                      </Badge>
+                        {/* Right */}
+                        <div className="flex flex-col gap-2 sm:items-end sm:gap-2">
+                          <div className="flex flex-wrap gap-2 sm:justify-end">
+                            <Badge
+                              variant="secondary"
+                              className="bg-secondary/40 border-0 text-[11px] font-medium"
+                            >
+                              {5} × {"10"}
+                            </Badge>
+                          </div>
+
+                          {/* <Button
+                            className="
+          w-full sm:w-auto
+          bg-primary hover:bg-primary/90 text-primary-foreground
+          rounded-xl
+        "
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // tu handler de "Agregar entreno"
+                            }}
+                          >
+                            Registrar Entreno
+                          </Button> */}
+                          <LoadTraining
+                            isOpen={isOpenLoadExercise}
+                            onOpenChange={setIsOpenLoadExercise}
+                          />
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
