@@ -1,24 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { WorkoutCard } from "@/components/workout-card";
 import { Button } from "@/components/ui/button";
 import { Dumbbell, Settings, Calendar, Trash2 } from "lucide-react";
 import Link from "next/link";
-import getToday from "@/feature/trainingDays/actions/getToday";
+import getToday from "@/feature/plan/actions/getToday";
 import { TrainingDayCard } from "@/components/training-day-card";
-import { TrainingDayWithBlocks } from "@/feature/trainingDays/actions/getDays";
+import { dayType, planType } from "@/feature/plan/type/plan.type";
 
 export default function Home() {
-  const [days, setDays] = useState<TrainingDayWithBlocks | null>(null);
+  const [days, setDays] = useState<dayType[] | null>(null);
   useEffect(() => {
     async function fetchData() {
       try {
-        const data = await getToday();
-        console.log(data);
-        setDays(data);
+        const list = await getToday();
+        const dayList = list.map((day) => day.days).flat();
+        setDays(dayList as dayType[]);
       } catch (error) {
-        console.log("first");
         console.log(error);
       }
     }
@@ -89,30 +87,29 @@ export default function Home() {
             </Link>
           </div>
         ) : (
-          <div className="relative group">
-            <TrainingDayCard
-              day={days}
-              onSelect={(d) => console.log(d)}
-              isActive
-            />
-            <WorkoutCard
-              exercise={days.blocks[0].exercises[0].exercise}
-              onLogWorkout={(a) => console.log(a)}
-            />
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity bg-destructive/10 hover:bg-destructive/20 text-destructive rounded-xl"
-              onClick={(e) => {
-                e.stopPropagation();
-              }}
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
+          <div className="space-y-4">
+            {days?.map((day, key) => (
+              <div className="relative group" key={key}>
+                <TrainingDayCard
+                  day={day}
+                  onSelect={(d) => console.log(d)}
+                  isActive
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity bg-destructive/10 hover:bg-destructive/20 text-destructive rounded-xl"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            ))}
           </div>
         )}
       </div>
-
       {/* <LogWorkoutDialog
         exercise={selectedExercise}
         open={dialogOpen}

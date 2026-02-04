@@ -29,13 +29,11 @@ import { Calendar, Plus, ArrowLeft, Trash2 } from "lucide-react";
 import Link from "next/link";
 
 import register from "@/feature/auth/actions/register";
-import getDays, {
-  TrainingDayWithBlocks,
-} from "@/feature/trainingDays/actions/getDays";
+import getDays from "@/feature/plan/actions/getDays";
 import getExercise, { Exercise } from "@/feature/exercises/actions/getExercise";
-import { createTrainingDayWithBlocks } from "@/feature/trainingDays/actions/createDay";
 import { Weekday } from "@/generated/prisma/browser";
-import DialogForm from "@/feature/trainingDays/ui/DialogForm";
+import { dayType, planType } from "@/feature/plan/type/plan.type";
+import { upsertPlanDayWithBlocks } from "@/feature/plan/actions/createDay";
 
 // Si tu enum Weekday usa tildes, ajustá estos values a lo que realmente sea el enum.
 const WEEKDAYS: Array<{ value: Weekday; label: string }> = [
@@ -85,16 +83,14 @@ function ExerciseBlockSkeleton() {
 }
 
 export default function TrainingDaysPage() {
-  const [days, setDays] = useState<TrainingDayWithBlocks[] | null>(null);
+  const [days, setDays] = useState<dayType[] | null>(null);
   const [exercises, setExercises] = useState<Exercise[]>([]);
 
   const [isLoadingDays, setIsLoadingDays] = useState(true);
   const [isLoadingExercises, setIsLoadingExercises] = useState(true);
 
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingDay, setEditingDay] = useState<TrainingDayWithBlocks | null>(
-    null,
-  );
+  const [editingDay, setEditingDay] = useState<dayType | null>(null);
 
   // 🔴 Cambiamos de exercises: string[] a exerciseBlocks: string[][]
   const [formData, setFormData] = useState<{
@@ -116,7 +112,8 @@ export default function TrainingDaysPage() {
       try {
         setIsLoadingDays(true);
         const list = await getDays();
-        if (!cancelled) setDays(list as TrainingDayWithBlocks[]);
+        const dayList = list.map((day) => day.days).flat();
+        if (!cancelled) setDays(dayList as dayType[]);
       } catch (e) {
         console.error(e);
       } finally {
@@ -146,7 +143,7 @@ export default function TrainingDaysPage() {
     [formData.exerciseBlocks],
   );
 
-  const handleOpenDialog = (day?: TrainingDayWithBlocks) => {
+  const handleOpenDialog = (day?: dayType) => {
     if (day) {
       setEditingDay(day);
 
@@ -228,17 +225,26 @@ export default function TrainingDaysPage() {
       blockTitles: ["Bloque 1"],
     });
 
-    await createTrainingDayWithBlocks({
-      day: dayValue,
-      name: formData.name,
-      userId: "cmkfi7wdo000074druqcsgf8x",
-      blocks: formData.exerciseBlocks.map((block, i) => ({
-        title: formData.blockTitles[i],
-        exercises: block.map((id) => ({ exerciseId: id })),
-      })),
-    });
+    // await upsertPlanDayWithBlocks({
+    //   userId: "cmkfi7wdo000074druqcsgf8x",
+    //   planId, // ✅ ahora es requerido
+    //   day: dayValue,
+    //   name: formData.name,
+    //   blocks: formData.exerciseBlocks.map((block, i) => ({
+    //     title: formData.blockTitles[i] ?? `Bloque ${i + 1}`,
+    //     order: i,
+    //     exercises: block.map((exerciseId, j) => ({
+    //       exerciseId,
+    //       order: j,
+    //       targetSets: null,
+    //       targetReps: null,
+    //       restSeconds: null,
+    //     })),
+    //   })),
+    // });
     const list = await getDays();
-    setDays(list as TrainingDayWithBlocks[]);
+    const dayList = list.map((day) => day.days).flat();
+    setDays(dayList as dayType[]);
   };
 
   const handleDelete = (id: string) => {
@@ -481,7 +487,7 @@ export default function TrainingDaysPage() {
                       console.log(user);
                     }}
                   >
-                    Activar
+                    Peron
                   </Button>
                 </form>
               </DialogContent>
@@ -513,7 +519,7 @@ export default function TrainingDaysPage() {
             {days.map((day) => (
               <div key={day.id} className="relative group">
                 <TrainingDayCard
-                  day={day as TrainingDayWithBlocks}
+                  day={day as dayType}
                   onSelect={(d) => handleOpenDialog(d)}
                 />
                 <Button

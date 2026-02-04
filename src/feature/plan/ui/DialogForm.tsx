@@ -11,7 +11,6 @@ import { Exercise } from "@/feature/exercises/actions/getExercise";
 import { Button } from "@/components/ui/button";
 import { Weekday } from "@/generated/prisma/browser";
 import { Plus, Trash2 } from "lucide-react";
-import { createTrainingDayWithBlocks } from "../actions/createDay";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -92,15 +91,15 @@ function DialogForm(isOpen: boolean, onOpenChange: (open: boolean) => void) {
       blockTitles: ["Bloque 1"],
     });
 
-    await createTrainingDayWithBlocks({
-      day: dayValue,
-      name: formData.name,
-      userId: "cmkfi7wdo000074druqcsgf8x",
-      blocks: formData.exerciseBlocks.map((block, i) => ({
-        title: formData.blockTitles[i],
-        exercises: block.map((id) => ({ exerciseId: id })),
-      })),
-    });
+    // await createTrainingDayWithBlocks({
+    //   day: dayValue,
+    //   name: formData.name,
+    //   userId: "cmkfi7wdo000074druqcsgf8x",
+    //   blocks: formData.exerciseBlocks.map((block, i) => ({
+    //     title: formData.blockTitles[i],
+    //     exercises: block.map((id) => ({ exerciseId: id })),
+    //   })),
+    // });
   };
   const addExerciseBlock = () => {
     setFormData((prev) => {

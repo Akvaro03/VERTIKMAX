@@ -5,7 +5,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  // url se configura fuera (por ej prisma.config.ts o env DATABASE_URL según tu setup)
+  // url fuera (env o config)
 }
 
 enum Weekday {
@@ -25,9 +25,9 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  exercises    Exercise[]
-  trainingDays TrainingDay[]
-  workoutLogs  WorkoutLog[]
+  exercises   Exercise[]
+  plans       Plan[]
+  workoutLogs WorkoutLog[]
 }
 
 model Exercise {
@@ -41,17 +41,35 @@ model Exercise {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  TrainingBlockExercise TrainingBlockExercise[]
-  workoutLogs           WorkoutLog[]
+  planBlockExercises PlanBlockExercise[]
+  workoutLogs        WorkoutLog[]
 
+  @@unique([userId, name])
   @@index([userId])
-  @@index([userId, name])
 }
 
-model TrainingDay {
+model Plan {
   id     String @id @default(cuid())
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name     String
+  isActive Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  workoutLogs WorkoutLog[]
+  updatedAt DateTime @updatedAt
+
+  days PlanDay[]
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+model PlanDay {
+  id     String  @id @default(cuid())
+  planId String
+  plan   Plan    @relation(fields: [planId], references: [id], onDelete: Cascade)
 
   day  Weekday
   name String
@@ -59,38 +77,37 @@ model TrainingDay {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  blocks      TrainingBlock[] // ✅ nuevo
-  workoutLogs WorkoutLog[]
+  blocks PlanBlock[]
+  logs   WorkoutLog[]  // opcional, para linkear logs a este día
 
-  @@unique([userId, day])
-  @@index([userId])
+  @@unique([planId, day])
+  @@index([planId])
 }
 
-model TrainingBlock {
-  id            String      @id @default(cuid())
-  trainingDayId String
-  trainingDay   TrainingDay @relation(fields: [trainingDayId], references: [id], onDelete: Cascade)
+model PlanBlock {
+  id        String  @id @default(cuid())
+  planDayId String
+  planDay   PlanDay @relation(fields: [planDayId], references: [id], onDelete: Cascade)
 
   title String
-  order Int    @default(0)
+  order Int @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  exercises TrainingBlockExercise[]
+  exercises PlanBlockExercise[]
 
-  @@index([trainingDayId, order])
+  @@index([planDayId, order])
 }
 
-model TrainingBlockExercise {
+model PlanBlockExercise {
   id         String @id @default(cuid())
   blockId    String
   exerciseId String
 
-  block    TrainingBlock @relation(fields: [blockId], references: [id], onDelete: Cascade)
-  exercise Exercise      @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  block    PlanBlock @relation(fields: [blockId], references: [id], onDelete: Cascade)
+  exercise Exercise  @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
 
-  // metadata del “plan”
   order       Int     @default(0)
   targetSets  Int?
   targetReps  String?
@@ -105,24 +122,23 @@ model WorkoutLog {
   id String @id @default(cuid())
 
   userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   exerciseId String
   exercise   Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
 
-  // opcional: si querés asociar el log a un “día del plan”
-  trainingDayId String?
-  trainingDay   TrainingDay? @relation(fields: [trainingDayId], references: [id], onDelete: SetNull)
+  // Opcional: link al plan y/o día del plan
+  planId    String?
+  plan      Plan?    @relation(fields: [planId], references: [id], onDelete: SetNull)
+
+  planDayId String?
+  planDay   PlanDay? @relation(fields: [planDayId], references: [id], onDelete: SetNull)
 
   performedAt DateTime @default(now())
   notes       String?
 
-  // opcional: si vas a registrar resultados reales
-  // setsDone    Int?
-  // repsDone    String?
-  // weightKg    Float?
-
   @@index([userId, performedAt])
   @@index([exerciseId, performedAt])
-  @@index([trainingDayId])
+  @@index([planId])
+  @@index([planDayId])
 }

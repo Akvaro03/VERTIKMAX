@@ -36,7 +36,7 @@ export function WorkoutCard({ exercise, onLogWorkout }: WorkoutCardProps) {
             {exercise.name}
           </h3>
           <p className="text-sm text-muted-foreground mt-0.5">
-            {exercise.category}
+            {exercise.description}
           </p>
         </div>
         <div className="flex-shrink-0 w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">

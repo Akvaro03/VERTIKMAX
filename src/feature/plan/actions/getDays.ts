@@ -3,25 +3,31 @@
 import { Exercise } from "@/feature/exercises/actions/getExercise";
 import { Weekday } from "@/generated/prisma/browser";
 import prisma from "@/lib/prisma";
+import { planType } from "../type/plan.type";
 
 async function getDays() {
-  const exercise = await prisma.trainingDay.findMany({
+  const plan = await prisma.plan.findMany({
     where: { userId: "cmkfi7wdo000074druqcsgf8x" },
     include: {
-      blocks: {
-        orderBy: { order: "asc" },
+      days: {
         include: {
-          exercises: {
+          blocks: {
             orderBy: { order: "asc" },
             include: {
-              exercise: true,
+              exercises: {
+                orderBy: { order: "asc" },
+                include: {
+                  exercise: true,
+                },
+              },
             },
           },
         },
       },
     },
   });
-  return exercise as TrainingDayWithBlocks[];
+  
+  return plan as planType[];
 }
 
 export default getDays;
