@@ -6,22 +6,32 @@ import { Dumbbell, Settings, Calendar, Trash2 } from "lucide-react";
 import Link from "next/link";
 import getToday from "@/feature/plan/actions/getToday";
 import { TrainingDayCard } from "@/components/training-day-card";
-import { dayType, planType } from "@/feature/plan/type/plan.type";
+import { dayType } from "@/feature/plan/type/plan.type";
+import { WeekdaySelect } from "@/components/selectDat";
+import getTodayName from "@/utilts/getTodayName";
+import getOneDay from "@/feature/plan/actions/getOneDay";
+import { Weekday } from "@/generated/prisma/enums";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function Home() {
   const [days, setDays] = useState<dayType[] | null>(null);
+  const [daySelected, SetDaySelected] = useState<Weekday>(getTodayName());
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
   useEffect(() => {
     async function fetchData() {
       try {
-        const list = await getToday();
+        setIsLoading(true);
+        const list = await getOneDay({ day: daySelected });
         const dayList = list.map((day) => day.days).flat();
         setDays(dayList as dayType[]);
+        setIsLoading(false);
       } catch (error) {
         console.log(error);
       }
     }
     fetchData();
-  }, []);
+  }, [daySelected]);
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -37,9 +47,10 @@ export default function Home() {
                   Mis Entrenamientos
                 </h1>
                 <p className="text-xs text-muted-foreground">
-                  {/* {exercises?.length} ejercicios */}
+                  {days?.length} planes
                 </p>
               </div>
+              <WeekdaySelect value={daySelected} onChange={SetDaySelected} />
             </div>
             <div className="flex gap-2">
               <Link href="/dias">
@@ -66,7 +77,18 @@ export default function Home() {
       </div>
 
       <div className="max-w-2xl mx-auto px-4 py-6">
-        {days === null ? (
+        {isLoading ? (
+          <div className="text-center py-16 space-y-4">
+            <div className="w-20 h-20 bg-muted rounded-2xl flex items-center justify-center mx-auto">
+              <Spinner />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-xl font-semibold text-foreground">
+                Cargando
+              </h2>
+            </div>
+          </div>
+        ) : days === null ? (
           <div className="text-center py-16 space-y-4">
             <div className="w-20 h-20 bg-muted rounded-2xl flex items-center justify-center mx-auto">
               <Dumbbell className="w-10 h-10 text-muted-foreground" />

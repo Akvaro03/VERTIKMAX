@@ -5,9 +5,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { TrainingDayWithBlocks } from "../actions/getDays";
-import { Exercise } from "@/feature/exercises/actions/getExercise";
+import getExercise, { Exercise } from "@/feature/exercises/actions/getExercise";
 import { Button } from "@/components/ui/button";
 import { Weekday } from "@/generated/prisma/browser";
 import { Plus, Trash2 } from "lucide-react";
@@ -23,16 +23,19 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
 import register from "@/feature/auth/actions/register";
+import { dayType } from "../type/plan.type";
 
-function DialogForm(isOpen: boolean, onOpenChange: (open: boolean) => void) {
+type props = {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  editingDay: dayType | null;
+};
+
+function DialogForm({ isOpen, onOpenChange, editingDay }: props) {
   const [exercises, setExercises] = useState<Exercise[]>([]);
 
   const [isLoadingExercises, setIsLoadingExercises] = useState(true);
 
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingDay, setEditingDay] = useState<TrainingDayWithBlocks | null>(
-    null
-  );
   const [formData, setFormData] = useState<{
     name: string;
     day: Weekday;
@@ -47,32 +50,35 @@ function DialogForm(isOpen: boolean, onOpenChange: (open: boolean) => void) {
 
   const totalSelected = useMemo(
     () => formData.exerciseBlocks.reduce((acc, block) => acc + block.length, 0),
-    [formData.exerciseBlocks]
+    [formData.exerciseBlocks],
   );
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        setIsLoadingExercises(true);
+        const list = await getExercise();
+        if (!cancelled) setExercises(list as Exercise[]);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        if (!cancelled) setIsLoadingExercises(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleOpenDialog = (day?: TrainingDayWithBlocks) => {
-    if (day) {
-      setEditingDay(day);
-
-      // Por ahora: si el día viene plano, lo ponemos en 1 solo bloque
-      setFormData({
-        name: day.name,
-        day: day.day,
-        exerciseBlocks: [
-          day.blocks.flatMap((b) => b.exercises.map((e) => e.id)),
-        ],
-        blockTitles: ["Bloque 1"], // si luego persistís títulos, acá los cargás
-      });
-    } else {
-      setEditingDay(null);
-      setFormData({
-        name: "",
-        day: "lunes" as Weekday,
-        exerciseBlocks: [[]],
-        blockTitles: ["Bloque 1"],
-      });
-    }
-    setDialogOpen(true);
+    setFormData({
+      name: "",
+      day: "lunes" as Weekday,
+      exerciseBlocks: [[]],
+      blockTitles: ["Bloque 1"],
+    });
   };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,7 +89,6 @@ function DialogForm(isOpen: boolean, onOpenChange: (open: boolean) => void) {
     // Aplanamos todos los bloques para el backend actual
     const flattened = formData.exerciseBlocks.flat();
 
-    setDialogOpen(false);
     setFormData({
       name: "",
       day: "lunes" as Weekday,
@@ -143,7 +148,7 @@ function DialogForm(isOpen: boolean, onOpenChange: (open: boolean) => void) {
   };
 
   return (
-    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
         <Button
           className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"

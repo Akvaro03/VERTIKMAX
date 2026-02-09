@@ -35,6 +35,7 @@ export default function ExercisesPage() {
 
     getExercise()
       .then((list) => {
+        console.log(list);
         if (!cancelled) setExercises(list as Exercise[]);
       })
       .catch(console.error);
@@ -74,7 +75,7 @@ export default function ExercisesPage() {
   const handleDelete = (id: string) => {
     if (
       confirm(
-        "¿Estás seguro de eliminar este ejercicio? Se perderán todos los registros asociados."
+        "¿Estás seguro de eliminar este ejercicio? Se perderán todos los registros asociados.",
       )
     ) {
       deleteExercise(id);
@@ -92,6 +93,7 @@ export default function ExercisesPage() {
   const categories = [
     ...new Set(exercises?.map((e) => e.description || "Sin categoría")),
   ];
+  console.log(categories);
   return (
     <div className="min-h-screen bg-background pb-20">
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border">
@@ -151,56 +153,47 @@ export default function ExercisesPage() {
           </div>
         ) : (
           <div className="space-y-6">
-            {categories.map((cat) => (
-              <div key={cat} className="space-y-3">
-                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1">
-                  {cat}
-                </h2>
-                <div className="space-y-2">
-                  {exercises &&
-                    exercises
-                      .filter((e) => e.description === cat)
-                      .map((exercise) => (
-                        <div
-                          key={exercise.id}
-                          className="bg-card border border-border rounded-xl p-4 flex items-center justify-between gap-3"
-                        >
-                          <div className="flex items-center gap-3 flex-1 min-w-0">
-                            <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                              <Dumbbell className="w-5 h-5 text-primary" />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <h3 className="font-medium text-foreground truncate">
-                                {exercise.name}
-                              </h3>
-                              <p className="text-xs text-muted-foreground">
-                                {exercise.description || "Sin categoría"}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 flex-shrink-0">
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={() => handleEdit(exercise)}
-                              className="rounded-lg h-9 w-9"
-                            >
-                              <Pencil className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={() => handleDelete(exercise.id)}
-                              className="rounded-lg h-9 w-9 text-destructive hover:text-destructive"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                </div>
-              </div>
-            ))}
+            <div className="space-y-2">
+              {exercises &&
+                exercises.map((exercise) => (
+                  <div
+                    key={exercise.id}
+                    className="bg-card border border-border rounded-xl p-4 flex items-center justify-between gap-3"
+                  >
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <Dumbbell className="w-5 h-5 text-primary" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-medium text-foreground truncate">
+                          {exercise.name}
+                        </h3>
+                        <p className="text-xs text-muted-foreground">
+                          {exercise.description || "Sin categoría"}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => handleEdit(exercise)}
+                        className="rounded-lg h-9 w-9"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => handleDelete(exercise.id)}
+                        className="rounded-lg h-9 w-9 text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+            </div>
           </div>
         )}
       </div>

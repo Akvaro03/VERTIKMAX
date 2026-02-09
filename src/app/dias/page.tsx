@@ -1,50 +1,22 @@
 "use client";
 
 import type React from "react";
-import { useEffect, useMemo, useState } from "react";
-
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { useEffect, useState } from "react";
 
 import { TrainingDayCard } from "@/components/training-day-card";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 
-import { Calendar, Plus, ArrowLeft, Trash2 } from "lucide-react";
+import { Calendar, ArrowLeft, Trash2 } from "lucide-react";
 import Link from "next/link";
 
-import register from "@/feature/auth/actions/register";
 import getDays from "@/feature/plan/actions/getDays";
 import getExercise, { Exercise } from "@/feature/exercises/actions/getExercise";
 import { Weekday } from "@/generated/prisma/browser";
-import { dayType, planType } from "@/feature/plan/type/plan.type";
-import { upsertPlanDayWithBlocks } from "@/feature/plan/actions/createDay";
+import { dayType } from "@/feature/plan/type/plan.type";
+import DialogForm from "@/feature/plan/ui/DialogForm";
 
 // Si tu enum Weekday usa tildes, ajustá estos values a lo que realmente sea el enum.
-const WEEKDAYS: Array<{ value: Weekday; label: string }> = [
-  { value: "lunes" as Weekday, label: "Lunes" },
-  { value: "martes" as Weekday, label: "Martes" },
-  { value: "miercoles" as Weekday, label: "Miércoles" },
-  { value: "jueves" as Weekday, label: "Jueves" },
-  { value: "viernes" as Weekday, label: "Viernes" },
-  { value: "sabado" as Weekday, label: "Sábado" },
-  { value: "domingo" as Weekday, label: "Domingo" },
-];
 
 function DaysListSkeleton() {
   return (
@@ -68,26 +40,10 @@ function DaysListSkeleton() {
   );
 }
 
-function ExerciseBlockSkeleton() {
-  return (
-    <div className="max-h-64 overflow-y-auto space-y-2 rounded-xl border border-border p-3 bg-background">
-      {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="flex items-center gap-3 p-2 rounded-lg">
-          <Skeleton className="h-4 w-4 rounded-sm" />
-          <Skeleton className="h-4 w-48" />
-          <Skeleton className="h-3 w-28" />
-        </div>
-      ))}
-    </div>
-  );
-}
-
 export default function TrainingDaysPage() {
   const [days, setDays] = useState<dayType[] | null>(null);
-  const [exercises, setExercises] = useState<Exercise[]>([]);
 
   const [isLoadingDays, setIsLoadingDays] = useState(true);
-  const [isLoadingExercises, setIsLoadingExercises] = useState(true);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingDay, setEditingDay] = useState<dayType | null>(null);
@@ -121,27 +77,10 @@ export default function TrainingDaysPage() {
       }
     })();
 
-    (async () => {
-      try {
-        setIsLoadingExercises(true);
-        const list = await getExercise();
-        if (!cancelled) setExercises(list as Exercise[]);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        if (!cancelled) setIsLoadingExercises(false);
-      }
-    })();
-
     return () => {
       cancelled = true;
     };
   }, []);
-
-  const totalSelected = useMemo(
-    () => formData.exerciseBlocks.reduce((acc, block) => acc + block.length, 0),
-    [formData.exerciseBlocks],
-  );
 
   const handleOpenDialog = (day?: dayType) => {
     if (day) {
@@ -166,85 +105,6 @@ export default function TrainingDaysPage() {
       });
     }
     setDialogOpen(true);
-  };
-
-  const addExerciseBlock = () => {
-    setFormData((prev) => {
-      const nextIndex = prev.exerciseBlocks.length + 1;
-      return {
-        ...prev,
-        exerciseBlocks: [...prev.exerciseBlocks, []],
-        blockTitles: [...prev.blockTitles, `Bloque ${nextIndex}`],
-      };
-    });
-  };
-
-  const removeExerciseBlock = (blockIndex: number) => {
-    setFormData((prev) => {
-      if (prev.exerciseBlocks.length === 1) return prev;
-
-      return {
-        ...prev,
-        exerciseBlocks: prev.exerciseBlocks.filter((_, i) => i !== blockIndex),
-        blockTitles: prev.blockTitles.filter((_, i) => i !== blockIndex),
-      };
-    });
-  };
-  const updateBlockTitle = (blockIndex: number, title: string) => {
-    setFormData((prev) => {
-      const nextTitles = [...prev.blockTitles];
-      nextTitles[blockIndex] = title;
-      return { ...prev, blockTitles: nextTitles };
-    });
-  };
-
-  const toggleExercise = (blockIndex: number, exerciseId: string) => {
-    setFormData((prev) => {
-      const next = [...prev.exerciseBlocks.map((b) => [...b])];
-      const block = next[blockIndex] ?? [];
-
-      next[blockIndex] = block.includes(exerciseId)
-        ? block.filter((id) => id !== exerciseId)
-        : [...block, exerciseId];
-
-      return { ...prev, exerciseBlocks: next };
-    });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.name.trim() || totalSelected === 0) return;
-
-    const dayValue = formData.day as Weekday;
-
-    setDialogOpen(false);
-    setFormData({
-      name: "",
-      day: "lunes" as Weekday,
-      exerciseBlocks: [[]],
-      blockTitles: ["Bloque 1"],
-    });
-
-    // await upsertPlanDayWithBlocks({
-    //   userId: "cmkfi7wdo000074druqcsgf8x",
-    //   planId, // ✅ ahora es requerido
-    //   day: dayValue,
-    //   name: formData.name,
-    //   blocks: formData.exerciseBlocks.map((block, i) => ({
-    //     title: formData.blockTitles[i] ?? `Bloque ${i + 1}`,
-    //     order: i,
-    //     exercises: block.map((exerciseId, j) => ({
-    //       exerciseId,
-    //       order: j,
-    //       targetSets: null,
-    //       targetReps: null,
-    //       restSeconds: null,
-    //     })),
-    //   })),
-    // });
-    const list = await getDays();
-    const dayList = list.map((day) => day.days).flat();
-    setDays(dayList as dayType[]);
   };
 
   const handleDelete = (id: string) => {
@@ -275,223 +135,23 @@ export default function TrainingDaysPage() {
 
               <div>
                 <h1 className="text-xl font-bold text-foreground">
-                  Días de Entrenamiento
+                  Planes de Entrenamiento
                 </h1>
                 {isLoadingDays ? (
                   <Skeleton className="h-3 w-20" />
                 ) : (
                   <p className="text-xs text-muted-foreground">
-                    {days?.length} días creados
+                    {days?.length} planes creados
                   </p>
                 )}
               </div>
             </div>
             {/* <DialogForm /> */}
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <DialogTrigger asChild>
-                <Button
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"
-                  onClick={() => handleOpenDialog()}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Nuevo Día
-                </Button>
-              </DialogTrigger>
-
-              <DialogContent className="sm:max-w-md bg-card border-border">
-                <DialogHeader>
-                  <DialogTitle className="text-foreground">
-                    {editingDay ? "Editar Día" : "Nuevo Día de Entrenamiento"}
-                  </DialogTitle>
-                </DialogHeader>
-
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name" className="text-foreground">
-                      Nombre del día
-                    </Label>
-                    <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) =>
-                        setFormData({ ...formData, name: e.target.value })
-                      }
-                      placeholder="Ej: Día de Pierna, Push Day..."
-                      className="bg-background border-border text-foreground"
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="day" className="text-foreground">
-                      Día
-                    </Label>
-
-                    <Select
-                      value={formData.day}
-                      onValueChange={(value) =>
-                        setFormData({ ...formData, day: value as Weekday })
-                      }
-                    >
-                      <SelectTrigger
-                        id="day"
-                        className="bg-background border-border text-foreground"
-                      >
-                        <SelectValue placeholder="Seleccioná un día" />
-                      </SelectTrigger>
-
-                      <SelectContent>
-                        {WEEKDAYS.map((d) => (
-                          <SelectItem key={d.value} value={d.value}>
-                            {d.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-foreground">
-                        Ejercicios seleccionados ({totalSelected})
-                      </Label>
-
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="rounded-xl"
-                        onClick={addExerciseBlock}
-                      >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Agregar bloque
-                      </Button>
-                    </div>
-
-                    <div className="space-y-3">
-                      {formData.exerciseBlocks.map((block, blockIndex) => (
-                        <div
-                          key={blockIndex}
-                          className="rounded-2xl border border-border bg-background p-3"
-                        >
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2 flex-1">
-                              <Input
-                                value={
-                                  formData.blockTitles[blockIndex] ??
-                                  `Bloque ${blockIndex + 1}`
-                                }
-                                onChange={(e) =>
-                                  updateBlockTitle(blockIndex, e.target.value)
-                                }
-                                placeholder={`Bloque ${blockIndex + 1}`}
-                                className="h-8 px-2 py-1 text-sm font-medium bg-transparent border-border/60 focus-visible:ring-0 focus-visible:ring-offset-0"
-                              />
-                              <span className="text-xs text-muted-foreground whitespace-nowrap">
-                                ({block.length})
-                              </span>
-                            </div>
-
-                            {formData.exerciseBlocks.length > 1 && (
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="rounded-xl"
-                                onClick={() => removeExerciseBlock(blockIndex)}
-                                aria-label="Eliminar bloque"
-                              >
-                                <Trash2 className="w-4 h-4 text-muted-foreground" />
-                              </Button>
-                            )}
-                          </div>
-
-                          {isLoadingExercises ? (
-                            <ExerciseBlockSkeleton />
-                          ) : exercises.length === 0 ? (
-                            <div className="rounded-xl border border-border p-4 bg-card">
-                              <p className="text-sm text-muted-foreground text-center">
-                                No hay ejercicios disponibles. Crea ejercicios
-                                primero.
-                              </p>
-                            </div>
-                          ) : (
-                            <div className="max-h-64 overflow-y-auto space-y-2 rounded-xl border border-border p-3 bg-card">
-                              {exercises.map((exercise) => (
-                                <div
-                                  key={exercise.id}
-                                  className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted/50"
-                                >
-                                  <Checkbox
-                                    id={`${blockIndex}-${exercise.id}`}
-                                    checked={block.includes(exercise.id)}
-                                    onCheckedChange={() =>
-                                      toggleExercise(blockIndex, exercise.id)
-                                    }
-                                  />
-                                  <label
-                                    htmlFor={`${blockIndex}-${exercise.id}`}
-                                    className="flex-1 text-sm text-foreground cursor-pointer"
-                                  >
-                                    {exercise.name}
-                                    <span className="ml-2 text-xs text-muted-foreground">
-                                      (
-                                      {exercise.description ||
-                                        "Sin descripción"}
-                                      )
-                                    </span>
-                                  </label>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-
-                      <button
-                        type="button"
-                        onClick={addExerciseBlock}
-                        className="w-full rounded-2xl border border-dashed border-border bg-card/40 hover:bg-card transition-colors p-4 text-left"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 rounded-2xl border border-border bg-background flex items-center justify-center">
-                            <Plus className="w-5 h-5 text-muted-foreground" />
-                          </div>
-                          <div>
-                            <div className="text-sm font-medium text-foreground">
-                              Agregar otro bloque de ejercicios
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              Útil para circuitos, superseries o separar la
-                              sesión por secciones.
-                            </div>
-                          </div>
-                        </div>
-                      </button>
-                    </div>
-                  </div>
-
-                  <Button
-                    type="submit"
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-                    disabled={!formData.name.trim() || totalSelected === 0}
-                  >
-                    {editingDay ? "Guardar Cambios" : "Crear Día"}
-                  </Button>
-
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    className="w-full"
-                    onClick={async () => {
-                      const user = await register();
-                      console.log(user);
-                    }}
-                  >
-                    Peron
-                  </Button>
-                </form>
-              </DialogContent>
-            </Dialog>
+            <DialogForm
+              isOpen={false}
+              onOpenChange={setDialogOpen}
+              editingDay={null}
+            />
           </div>
         </div>
       </div>
@@ -522,17 +182,6 @@ export default function TrainingDaysPage() {
                   day={day as dayType}
                   onSelect={(d) => handleOpenDialog(d)}
                 />
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity bg-destructive/10 hover:bg-destructive/20 text-destructive rounded-xl"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDelete(day.id);
-                  }}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
               </div>
             ))}
           </div>

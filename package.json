@@ -5,7 +5,6 @@
   "prisma": {
     "seed": "ts-node prisma/seedRoutine.ts"
   },
-
   "scripts": {
     "dev": "next dev",
     "build": "next build",

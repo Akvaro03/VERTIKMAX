@@ -26,7 +26,7 @@ async function getDays() {
       },
     },
   });
-  
+      
   return plan as planType[];
 }
 
