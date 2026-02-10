@@ -117,16 +117,6 @@ export default function Home() {
                   onSelect={(d) => console.log(d)}
                   isActive
                 />
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity bg-destructive/10 hover:bg-destructive/20 text-destructive rounded-xl"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                  }}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
               </div>
             ))}
           </div>

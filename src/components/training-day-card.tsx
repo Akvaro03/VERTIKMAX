@@ -12,6 +12,7 @@ import {
   Copy,
   Pencil,
   CheckCircle2,
+  X,
 } from "lucide-react";
 import LoadTraining from "./loadTraining";
 import { useMemo, useState } from "react";
@@ -40,6 +41,7 @@ export function TrainingDayCard({
   day,
   onSelect,
   defaultOpen = false,
+  isActive,
 }: TrainingDayCardProps) {
   const [open, setOpen] = useState<boolean>(defaultOpen);
   const [isOpenLoadExercise, setIsOpenLoadExercise] = useState<boolean>(false);
@@ -121,11 +123,88 @@ export function TrainingDayCard({
             />
           </Button>
         </div>
+        <div className={["", transition, open ? show : hide].join(" ")}>
+          {isActive ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={(e) => {
+                e.stopPropagation();
+                // handleActivate(day.id);
+              }}
+              className={[
+                baseBtn,
+                "bg-destructive/10 text-destructive hover:bg-destructive/15 border-destructive/20",
+              ].join(" ")}
+            >
+              {/* <CheckCircle2 className={iconCls} /> */}
+              <X className={iconCls} />
+            </Button>
+          ) : (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={(e) => {
+                e.stopPropagation();
+                // handleActivate(day.id);
+              }}
+              className={[
+                baseBtn,
+                "text-emerald-600 hover:bg-emerald-500/10",
+              ].join(" ")}
+            >
+              <CheckCircle2 className={iconCls} />
+            </Button>
+          )}
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation();
+              // handleEdit(day.id);
+            }}
+            className={[baseBtn, "text-blue-600 hover:bg-blue-500/10"].join(
+              " ",
+            )}
+          >
+            <Pencil className={iconCls} />
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation();
+              // handleDuplicate(day.id);
+            }}
+            className={[baseBtn, "text-violet-600 hover:bg-violet-500/10"].join(
+              " ",
+            )}
+          >
+            <Copy className={iconCls} />
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation();
+              // handleDelete(day.id);
+            }}
+            className={[
+              baseBtn,
+              "bg-destructive/10 text-destructive hover:bg-destructive/15 border-destructive/20",
+            ].join(" ")}
+          >
+            <Trash2 className={iconCls} />
+          </Button>
+        </div>
 
         {/* BODY (solo si open) */}
         {open ? (
           blocks.length > 0 ? (
-            <div className="mt-4 space-y-3">
+            <div className="space-y-3">
               {blocks.map((block) => (
                 <div key={block.id}>
                   <div className="text-sm font-semibold text-foreground/90">
@@ -208,85 +287,15 @@ export function TrainingDayCard({
           )
         ) : null}
       </div>
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={(e) => {
-          e.stopPropagation();
-          // handleActivate(day.id);
-        }}
-        className={[
-          baseBtn,
-          "right-40 text-emerald-600 hover:bg-emerald-500/10",
-          transition,
-          open ? show : hide,
-        ].join(" ")}
-      >
-        <CheckCircle2 className={iconCls} />
-      </Button>
-
-      {/* Editar */}
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={(e) => {
-          e.stopPropagation();
-          // handleEdit(day.id);
-        }}
-        className={[
-          baseBtn,
-          "right-28 text-blue-600 hover:bg-blue-500/10",
-          transition,
-          open ? show : hide,
-        ].join(" ")}
-      >
-        <Pencil className={iconCls} />
-      </Button>
-
-      {/* Duplicar */}
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={(e) => {
-          e.stopPropagation();
-          // handleDuplicate(day.id);
-        }}
-        className={[
-          baseBtn,
-          "right-16 text-violet-600 hover:bg-violet-500/10",
-          transition,
-          open ? show : hide,
-        ].join(" ")}
-      >
-        <Copy className={iconCls} />
-      </Button>
-
-      {/* Borrar */}
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={(e) => {
-          e.stopPropagation();
-          // handleDelete(day.id);
-        }}
-        className={[
-          baseBtn,
-          "right-4 bg-destructive/10 text-destructive hover:bg-destructive/15 border-destructive/20",
-          transition,
-          open ? show : hide,
-        ].join(" ")}
-      >
-        <Trash2 className={iconCls} />
-      </Button>
     </Card>
   );
 }
 
-const baseBtn =
-  "absolute top-4 bg-background/70 backdrop-blur border rounded-xl shadow-sm";
+const baseBtn = "bg-background/70 backdrop-blur border rounded-xl shadow-sm";
 const transition = "transition-all duration-200 ease-out";
 
-const show = "opacity-100 scale-100 pointer-events-auto translate-y-0";
+const show =
+  "opacity-100 scale-100 pointer-events-auto translate-y-0 my-4 space-x-3";
 const hide = "opacity-0 scale-95 pointer-events-none translate-y-1";
 
 const iconCls = "w-4 h-4";
