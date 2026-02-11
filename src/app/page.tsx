@@ -25,7 +25,7 @@ export default function Home() {
   useEffect(() => {
     async function fetchData() {
       try {
-          setIsLoading(true);
+        setIsLoading(true);
         const list = (await getDashboardHome({
           day: daySelected,
         })) as planType[];
@@ -46,7 +46,7 @@ export default function Home() {
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="max-w-2xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3 gap-2">
               <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
                 <Dumbbell className="w-5 h-5 text-primary-foreground" />
               </div>
