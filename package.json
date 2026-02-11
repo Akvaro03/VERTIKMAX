@@ -23,6 +23,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.562.0",
+    "motion": "^12.34.0",
     "next": "16.1.2",
     "pg": "^8.17.1",
     "prisma": "^7.2.0",

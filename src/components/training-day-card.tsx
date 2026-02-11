@@ -17,12 +17,14 @@ import {
 import LoadTraining from "./loadTraining";
 import { useMemo, useState } from "react";
 import { dayType } from "@/feature/plan/type/plan.type";
+import changeActivePlan from "@/feature/plan/actions/changeActivePlan";
 
 interface TrainingDayCardProps {
   day: dayType;
   isActive?: boolean;
   onSelect?: (day: dayType) => void; // opcional ahora
   defaultOpen?: boolean;
+  onReload?: () => void;
 }
 
 function formatTarget(
@@ -42,10 +44,10 @@ export function TrainingDayCard({
   onSelect,
   defaultOpen = false,
   isActive,
+  onReload,
 }: TrainingDayCardProps) {
   const [open, setOpen] = useState<boolean>(defaultOpen);
   const [isOpenLoadExercise, setIsOpenLoadExercise] = useState<boolean>(false);
-
   const blocks = useMemo(
     () => [...day.blocks].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
     [day.blocks],
@@ -56,6 +58,7 @@ export function TrainingDayCard({
   }, [blocks]);
 
   const toggle = () => {
+    // console.log(day)
     setOpen((prev) => {
       const next = !prev;
       // Si querés que "seleccionar" sea abrir, llamalo acá cuando abre
@@ -78,8 +81,15 @@ export function TrainingDayCard({
       <div className="p-4 sm:p-5">
         {/* HEADER (siempre visible) */}
         <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center shrink-0 ring-1 ring-primary/10">
+          <div className="flex items-center gap-3 flex-1 min-w-0 bg-red">
+            <div
+              className={[
+                "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ring-1",
+                isActive
+                  ? "bg-primary/10 ring-primary/10"
+                  : "bg-destructive/50 ring-destructive/400",
+              ].join(" ")}
+            >
               <Calendar className="w-6 h-6 text-primary" />
             </div>
 
@@ -97,10 +107,20 @@ export function TrainingDayCard({
                 </Badge>
               </div>
 
-              <p className="text-sm text-muted-foreground mt-0.5">
-                {exercisesCount}{" "}
-                {exercisesCount === 1 ? "ejercicio" : "ejercicios"}
-              </p>
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <span className="text-sm text-muted-foreground mt-0.5">
+                  {exercisesCount}{" "}
+                  {exercisesCount === 1 ? "ejercicio" : "ejercicios"}
+                </span>
+                {!isActive && (
+                  <>
+                    <span className="text-muted-foreground/60">•</span>
+                    <span className="text-sm text-muted-foreground mt-0.5 text-red-400">
+                      Desactivado
+                    </span>
+                  </>
+                )}
+              </div>
             </div>
           </div>
 
@@ -128,9 +148,12 @@ export function TrainingDayCard({
             <Button
               variant="ghost"
               size="icon"
-              onClick={(e) => {
+              onClick={async (e) => {
+                console.log(day.planId);
                 e.stopPropagation();
-                // handleActivate(day.id);
+                // (day.id);
+                await changeActivePlan({ idPlan: day.planId, newState: false });
+                onReload?.();
               }}
               className={[
                 baseBtn,
@@ -144,9 +167,10 @@ export function TrainingDayCard({
             <Button
               variant="ghost"
               size="icon"
-              onClick={(e) => {
+              onClick={async (e) => {
                 e.stopPropagation();
-                // handleActivate(day.id);
+                changeActivePlan({ idPlan: day.planId, newState: true });
+                onReload?.();
               }}
               className={[
                 baseBtn,
@@ -204,7 +228,7 @@ export function TrainingDayCard({
         {/* BODY (solo si open) */}
         {open ? (
           blocks.length > 0 ? (
-            <div className="space-y-3">
+            <div className="mt-4 grid gap-2">
               {blocks.map((block) => (
                 <div key={block.id}>
                   <div className="text-sm font-semibold text-foreground/90">

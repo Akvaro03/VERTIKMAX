@@ -2,36 +2,44 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Dumbbell, Settings, Calendar, Trash2 } from "lucide-react";
+import { Dumbbell, Settings, Calendar } from "lucide-react";
 import Link from "next/link";
-import getToday from "@/feature/plan/actions/getToday";
 import { TrainingDayCard } from "@/components/training-day-card";
-import { dayType } from "@/feature/plan/type/plan.type";
+import { dayType, planType } from "@/feature/plan/type/plan.type";
 import { WeekdaySelect } from "@/components/selectDat";
 import getTodayName from "@/utilts/getTodayName";
-import getOneDay from "@/feature/plan/actions/getOneDay";
 import { Weekday } from "@/generated/prisma/enums";
 import { Spinner } from "@/components/ui/spinner";
+import getDashboardHome from "@/feature/plan/actions/getDashboardHome";
+
+type DayWithPlanActive = dayType & { planIsActive: boolean };
 
 export default function Home() {
-  const [days, setDays] = useState<dayType[] | null>(null);
+  const [days, setDays] = useState<DayWithPlanActive[]>([]);
   const [daySelected, SetDaySelected] = useState<Weekday>(getTodayName());
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [reloadKey, setReloadKey] = useState(0);
+
+  const reload = () => setReloadKey((k) => k + 1);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        setIsLoading(true);
-        const list = await getOneDay({ day: daySelected });
-        const dayList = list.map((day) => day.days).flat();
-        setDays(dayList as dayType[]);
+          setIsLoading(true);
+        const list = (await getDashboardHome({
+          day: daySelected,
+        })) as planType[];
+        const dayList: DayWithPlanActive[] = list.flatMap((plan) =>
+          plan.days.map((day) => ({ ...day, planIsActive: plan.isActive })),
+        );
+        setDays(dayList);
         setIsLoading(false);
       } catch (error) {
         console.log(error);
       }
     }
     fetchData();
-  }, [daySelected]);
+  }, [reloadKey, daySelected]);
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -114,20 +122,14 @@ export default function Home() {
               <div className="relative group" key={key}>
                 <TrainingDayCard
                   day={day}
-                  onSelect={(d) => console.log(d)}
-                  isActive
+                  isActive={day.planIsActive}
+                  onReload={reload}
                 />
               </div>
             ))}
           </div>
         )}
       </div>
-      {/* <LogWorkoutDialog
-        exercise={selectedExercise}
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        onSuccess={handleSuccess}
-      /> */}
     </div>
   );
 }
