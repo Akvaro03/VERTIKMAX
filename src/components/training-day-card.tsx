@@ -81,7 +81,7 @@ export function TrainingDayCard({
       <div className="p-4 sm:p-5">
         {/* HEADER (siempre visible) */}
         <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-3 flex-1 min-w-0 bg-red">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
             <div
               className={[
                 "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ring-1",
@@ -249,17 +249,17 @@ export function TrainingDayCard({
                           className="rounded-xl border border-border/60 bg-background/40 px-3 py-3 hover:bg-background/60 transition-colors"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between w-full">
                             {/* Left */}
-                            <div className="flex items-start gap-3 min-w-0">
+                            <div className="flex items-start gap-3 flex-1 min-w-0">
                               <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center ring-1 ring-primary/10 shrink-0">
                                 <span className="text-xs font-semibold text-primary">
                                   {idx + 1}
                                 </span>
                               </div>
 
-                              <div className="min-w-0">
-                                <p className="text-sm font-medium text-foreground truncate">
+                              <div>
+                                <p className="text-sm font-medium text-foreground break-words line-clamp-2">
                                   {ex.exercise?.name ?? "Ejercicio sin nombre"}
                                 </p>
 
@@ -283,18 +283,19 @@ export function TrainingDayCard({
                             </div>
 
                             {/* Right */}
-                            <div className="flex flex-col gap-2 sm:items-end">
+                            <div className="flex flex-col gap-2 sm:items-end shrink-0 max-w-full">
                               <Badge
                                 variant="secondary"
                                 className="bg-secondary/40 border-0 text-[11px] font-medium"
                               >
                                 {ex.targetSets ?? "—"} × {ex.targetReps ?? "—"}
                               </Badge>
-
-                              <LoadTraining
-                                isOpen={isOpenLoadExercise}
-                                onOpenChange={setIsOpenLoadExercise}
-                              />
+                              <div className="w-full sm:w-auto max-w-full overflow-hidden">
+                                <LoadTraining
+                                  isOpen={isOpenLoadExercise}
+                                  onOpenChange={setIsOpenLoadExercise}
+                                />
+                              </div>
                             </div>
                           </div>
                         </div>
