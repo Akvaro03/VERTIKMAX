@@ -87,7 +87,7 @@ export default function TrainingDaysPage() {
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 py-6">
+      <div className="max-w-2xl lg:max-w-none mx-auto px-4 py-6">
         {isLoading ? (
           <div className="text-center py-16 space-y-4">
             <div className="w-20 h-20 bg-muted rounded-2xl flex items-center justify-center mx-auto">
@@ -114,9 +114,12 @@ export default function TrainingDaysPage() {
             </div>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="grid gap-4 grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3">
             {plansSorted.map((plan, key) => (
-              <div className="relative group" key={key}>
+              <div
+                key={key}
+                className="relative group w-full max-w-2xl mx-auto"
+              >
                 <PlanCard plan={plan} />
               </div>
             ))}

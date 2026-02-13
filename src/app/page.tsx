@@ -19,7 +19,6 @@ export default function Home() {
   const [daySelected, SetDaySelected] = useState<Weekday>(getTodayName());
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [reloadKey, setReloadKey] = useState(0);
-
   const reload = () => setReloadKey((k) => k + 1);
 
   useEffect(() => {
@@ -84,7 +83,7 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 py-6">
+      <div className="max-w-2xl lg:max-w-none mx-auto px-4 py-6">
         {isLoading ? (
           <div className="text-center py-16 space-y-4">
             <div className="w-20 h-20 bg-muted rounded-2xl flex items-center justify-center mx-auto">
@@ -117,9 +116,12 @@ export default function Home() {
             </Link>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="grid gap-4 grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3">
             {days?.map((day, key) => (
-              <div className="relative group" key={key}>
+              <div
+                key={key}
+                className="relative group w-full max-w-2xl mx-auto"
+              >
                 <TrainingDayCard
                   day={day}
                   isActive={day.planIsActive}

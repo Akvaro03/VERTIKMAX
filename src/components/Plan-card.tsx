@@ -11,15 +11,16 @@ import {
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import changeActivePlan from "@/feature/plan/actions/changeActivePlan";
+import { toast } from "sonner";
+import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
 
 type PlanCardProps = {
   plan: planType;
 };
 function PlanCard({ plan }: PlanCardProps) {
   const [open, setOpen] = useState<boolean>(false);
-
+  const [openDelete, setOpenDelete] = useState(false);
   const daysCount = plan.days?.length ?? 0;
   const exercisesCount =
     plan.days?.reduce((accDay, d) => {
@@ -91,8 +92,7 @@ function PlanCard({ plan }: PlanCardProps) {
                 size="icon"
                 onClick={(e) => {
                   e.stopPropagation();
-                  // (day.id);
-                  changeActivePlan({ idPlan: plan.id, newState: false });
+                  setOpenDelete(true);
                 }}
                 className={[
                   baseBtn,
@@ -109,6 +109,7 @@ function PlanCard({ plan }: PlanCardProps) {
                 onClick={(e) => {
                   e.stopPropagation();
                   changeActivePlan({ idPlan: plan.id, newState: true });
+                  toast.success("Plan Activado"); // si usás sonner/toast
                 }}
                 className={[
                   baseBtn,
@@ -197,6 +198,23 @@ function PlanCard({ plan }: PlanCardProps) {
           </div>
         ) : null}
       </div>
+      <ConfirmDeleteDialog
+        open={openDelete}
+        onOpenChange={setOpenDelete}
+        title="Desactivar este plan?"
+        description="Desactivar este plan hará que no se muestre en el dashboard."
+        requireTextConfirm={false} // ponelo true si es algo muy crítico
+        onConfirm={async () => {
+          await changeActivePlan({ idPlan: plan.id, newState: false });
+          toast("Event has been created", {
+            description: "Sunday, December 03, 2023 at 9:00 AM",
+            action: {
+              label: "Undo",
+              onClick: () => console.log("Undo"),
+            },
+          });
+        }}
+      />
     </Card>
   );
 }

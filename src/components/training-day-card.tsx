@@ -18,6 +18,8 @@ import LoadTraining from "./loadTraining";
 import { useMemo, useState } from "react";
 import { dayType } from "@/feature/plan/type/plan.type";
 import changeActivePlan from "@/feature/plan/actions/changeActivePlan";
+import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
+import { toast } from "sonner";
 
 interface TrainingDayCardProps {
   day: dayType;
@@ -48,6 +50,7 @@ export function TrainingDayCard({
 }: TrainingDayCardProps) {
   const [open, setOpen] = useState<boolean>(defaultOpen);
   const [isOpenLoadExercise, setIsOpenLoadExercise] = useState<boolean>(false);
+  const [openDelete, setOpenDelete] = useState(false);
   const blocks = useMemo(
     () => [...day.blocks].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
     [day.blocks],
@@ -149,11 +152,10 @@ export function TrainingDayCard({
               variant="ghost"
               size="icon"
               onClick={async (e) => {
-                console.log(day.planId);
                 e.stopPropagation();
                 // (day.id);
-                await changeActivePlan({ idPlan: day.planId, newState: false });
-                onReload?.();
+                setOpenDelete(true);
+                // onReload?.();
               }}
               className={[
                 baseBtn,
@@ -312,6 +314,18 @@ export function TrainingDayCard({
           )
         ) : null}
       </div>
+      <ConfirmDeleteDialog
+        open={openDelete}
+        onOpenChange={setOpenDelete}
+        title="Desactivar este plan?"
+        description="Desactivar este plan hará que no se muestre en el dashboard."
+        requireTextConfirm={false} // ponelo true si es algo muy crítico
+        onConfirm={async () => {
+          await changeActivePlan({ idPlan: day.planId, newState: false });
+          toast.success("Plan Desactivado"); // si usás sonner/toast
+          onReload?.();
+        }}
+      />
     </Card>
   );
 }
