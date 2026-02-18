@@ -20,6 +20,7 @@ import { dayType } from "@/feature/plan/type/plan.type";
 import changeActivePlan from "@/feature/plan/actions/changeActivePlan";
 import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
 import { toast } from "sonner";
+import DialogTranscription from "./DialogTranscription";
 
 interface TrainingDayCardProps {
   day: dayType;
@@ -49,6 +50,7 @@ export function TrainingDayCard({
   onReload,
 }: TrainingDayCardProps) {
   const [open, setOpen] = useState<boolean>(defaultOpen);
+  const [openTranscription, setOpenTranscription] = useState(false);
   const [isOpenLoadExercise, setIsOpenLoadExercise] = useState<boolean>(false);
   const [openDelete, setOpenDelete] = useState(false);
   const blocks = useMemo(
@@ -196,20 +198,11 @@ export function TrainingDayCard({
           >
             <Pencil className={iconCls} />
           </Button>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={(e) => {
-              e.stopPropagation();
-              // handleDuplicate(day.id);
-            }}
-            className={[baseBtn, "text-violet-600 hover:bg-violet-500/10"].join(
-              " ",
-            )}
-          >
-            <Copy className={iconCls} />
-          </Button>
+          <DialogTranscription
+            isOpen={openTranscription}
+            onOpenChange={setOpenTranscription}
+            planId={day.planId}
+          />
 
           <Button
             variant="ghost"

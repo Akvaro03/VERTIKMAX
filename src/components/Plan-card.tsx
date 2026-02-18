@@ -14,6 +14,7 @@ import { useState } from "react";
 import changeActivePlan from "@/feature/plan/actions/changeActivePlan";
 import { toast } from "sonner";
 import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
+import DialogTranscription from "./DialogTranscription";
 
 type PlanCardProps = {
   plan: planType;
@@ -21,6 +22,7 @@ type PlanCardProps = {
 function PlanCard({ plan }: PlanCardProps) {
   const [open, setOpen] = useState<boolean>(false);
   const [openDelete, setOpenDelete] = useState(false);
+  const [openTranscription, setOpenTranscription] = useState(false);
   const daysCount = plan.days?.length ?? 0;
   const exercisesCount =
     plan.days?.reduce((accDay, d) => {
@@ -34,7 +36,6 @@ function PlanCard({ plan }: PlanCardProps) {
   const toggle = () => {
     // console.log(day)
     setOpen((prev) => {
-      console.log(plan);
       const next = !prev;
       // Si querés que "seleccionar" sea abrir, llamalo acá cuando abre
       return next;
@@ -133,7 +134,11 @@ function PlanCard({ plan }: PlanCardProps) {
             >
               <Pencil className={iconCls} />
             </Button>
-
+            <DialogTranscription
+              isOpen={openTranscription}
+              onOpenChange={setOpenTranscription}
+              planData={plan}
+            />
             <Button
               variant="ghost"
               size="icon"
